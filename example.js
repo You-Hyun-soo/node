@@ -26,41 +26,42 @@ connection.connect();
 // DB에 전달할 명령어 (쿼리문)
 // 위에서 설정한 데이터베이스에 내가 원하는 기능을 시킨다
 // select, insert
-connection.query("쿼리문",function(error, results){
-	if (error) {
-		console.log("에러 발생 : ", error)
-	} else {
-		console.log("성공 :", results)
-	}
-});
+// connection.query("select * from my_table",function(error, results){
+// 	if (error) {
+// 		console.log("에러 발생 : ", error)
+// 	} else {
+// 		console.log("성공 :", results)
+// 	}
+// });
 // DB 연결 끝
-connection.end();
+//connection.end();
 
 
 // 라우터 (라우팅)
 // 클라이언트에서 주소값으로 들어온 요청을 처리하는 함수
 // 요청객체와 응답객체 (request response)
 // 요청 데이터는 req안에, 그 요청에 대한 응답은 res를 통해서
-app.get('/test', function(req,res){ //요청과 응답의 순서가 바뀌어서는 안된다.
-	console.log("코드 수정 확인"); // localhost:3000/test : 요청
-	// res.send("okay"); // response : 응답
-	// var data = { title : "ejs view page test" };
+// app.get('/test', function(req,res){ //요청과 응답의 순서가 바뀌어서는 안된다.
+// 	console.log("코드 수정 확인"); // localhost:3000/test : 요청
+// 	// res.send("okay"); // response : 응답
+// 	// var data = { title : "ejs view page test" };
 
-	let data = { title : "testdata" };
+// 	let data = { title : "testdata" };
 
-	// list[0] ~ list[3] (length 4)
-	data.list = [
-		{ name : "홍길동", hobby : "목예", job : "개자" }, 
-		{ name : "아개", hobby : "수공예", job : "수발자" },
-		{ name : "저개", hobby : "석공예", job : "석발자" },
-		{ name : "킹개", hobby : "화공예", job : "화발자" }
-		]
+// 	// list[0] ~ list[3] (length 4)
+// 	data.list = [
+// 		{ name : "홍길동", hobby : "목예", job : "개자" }, 
+// 		{ name : "아개", hobby : "수공예", job : "수발자" },
+// 		{ name : "저개", hobby : "석공예", job : "석발자" },
+// 		{ name : "킹개", hobby : "화공예", job : "화발자" }
+// 		]
 
 
-	//let data = { title : "text" , list : [ {name : "txt", hobby : "txt", job : "txt"},{}, ]};
+// 	//let data = { title : "text" , list : [ {name : "txt", hobby : "txt", job : "txt"},{}, ]};
 
-	res.render('../view', data); // 경로를 작성 // view페이지의 경로를 연결시켜준다. // 보낼 곳 , 보낼 data
-});
+// 	res.render('../view', data); // 경로를 작성 // view페이지의 경로를 연결시켜준다. // 보낼 곳 , 보낼 data
+// });
+
 
 /* node 파일명.js : node.js 파일 및 웹 서버를 실행시키는 명령어. 수정한 백엔드 코드가 즉각 반영되지 않기 
  때문에 재차 node 파일명.js를 실행시켜야 한다는 단점이 있다. 
@@ -102,3 +103,24 @@ app.get('/test', function(req,res){ //요청과 응답의 순서가 바뀌어서
 	npm i mysql --save
 */
 
+// test 주소 값으로 요청이 들어올 시 아래 라우터가 실행되면서
+// db에 있는 데이터를 꺼내서 클라이언트로 응답과 함께 데이터를 보내준다.
+app.get('/test',(req,res) => {
+
+	let data = {title : "ejs view page test"}
+
+	connection.query("select*from my_table",function(error,results)
+	{
+		if(error) {
+			console.log("에러 발생 : ", error);
+		}else {
+			//query 실행 결과로 넘겨받은 결과 값을 화면 페이지에 보내주기 위해서 data 객체에 넣어준다.
+			data.list = results;
+			res.render('../view',data);
+		}
+	}
+		)
+	
+}
+
+	)
