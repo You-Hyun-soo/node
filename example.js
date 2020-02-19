@@ -102,7 +102,13 @@ connection.connect();
 
 	npm i mysql --save
 */
-
+// node js cors allow origin => 모든 코드를 받아들이겠다.
+// 전체 주소값에 대해서 모두 허용한다.
+app.all('/*', function(req,res,next){
+	res.header("Access-Control-Allow-Origin", "*");
+	res.header("Access-Control-Allow-Headers", "X-Requested-With");
+	next(); // 진짜 주소값으로 들어가라
+})
 // test 주소 값으로 요청이 들어올 시 아래 라우터가 실행되면서
 // db에 있는 데이터를 꺼내서 클라이언트로 응답과 함께 데이터를 보내준다.
 app.get('/test',(req,res) => {
@@ -116,11 +122,18 @@ app.get('/test',(req,res) => {
 		}else {
 			//query 실행 결과로 넘겨받은 결과 값을 화면 페이지에 보내주기 위해서 data 객체에 넣어준다.
 			data.list = results;
-			res.render('../view',data);
-		}
-	}
-		)
-	
-}
+			// res.render('../view',data);
 
-	)
+			// res.json({ result : "Success!!" })
+			res.json(data);
+			// json formatter 깔끔하게 나옴
+			// 같은 주소값이면 충돌 오류 발생
+		}
+	});
+	
+});
+
+
+
+
+
