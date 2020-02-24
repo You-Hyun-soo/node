@@ -2,6 +2,8 @@
 const express = require('express'); //require : 패키지를 불러오겠다는 의미
 // express를 이용해 app(웹 프로그램)을 생성한다.
 const app = express();
+const bodyParser = require('body-parser');
+const cors = require('cors');
 const mysql = require('mysql'); // mysql을 연결하겠다
 const connection = mysql.createConnection({
 	host : 'localhost', // 연결할 호스트 정보
@@ -19,6 +21,13 @@ app.set('view engine', 'ejs');
 app.listen(3000,function(){
 	console.log("Node.js Web Server On!");
 });
+
+
+// bodyParser는 요청(req)을 통해 넘겨받은 데이터를 해석해준다.
+// 폼에 담긴 데이터나 http 통신을 통해 전달받은 데이터를 처리한다.
+// POST 요청으로 받은 데이터를 req 객체의 body를 통해서 접근한다.
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended : false }));
 
 // DB 연결 코드 (여기가 실질적인 db 연동)
 connection.connect();
@@ -104,11 +113,22 @@ connection.connect();
 */
 // node js cors allow origin => 모든 코드를 받아들이겠다.
 // 전체 주소값에 대해서 모두 허용한다.
+/*
 app.all('/*', function(req,res,next){
+
+	// 모든 설정, 모든 요청을 허용한다.
+	// 모든 서버의 요청과 모든 설정을 허용하면 보안상 취약점이 발생할 수 있다.
+	// 실제 프로젝트에서는 해당 요청에 따라서 아래 설정을 달리한다.
 	res.header("Access-Control-Allow-Origin", "*");
 	res.header("Access-Control-Allow-Headers", "X-Requested-With");
+	res.header("Access-Control-Allow-Methods", "*");
+
 	next(); // 진짜 주소값으로 들어가라
 })
+*/
+// cors 패키지로 사용하는 방법 : 위의 값 처럼
+app.use(cors());
+
 // test 주소 값으로 요청이 들어올 시 아래 라우터가 실행되면서
 // db에 있는 데이터를 꺼내서 클라이언트로 응답과 함께 데이터를 보내준다.
 app.get('/test',(req,res) => {
@@ -121,6 +141,7 @@ app.get('/test',(req,res) => {
 			console.log("에러 발생 : ", error);
 		}else {
 			//query 실행 결과로 넘겨받은 결과 값을 화면 페이지에 보내주기 위해서 data 객체에 넣어준다.
+			console.log("성공 :", results);
 			data.list = results;
 			// res.render('../view',data);
 
@@ -133,7 +154,88 @@ app.get('/test',(req,res) => {
 	
 });
 
+// list_table에 있는 데이터를 불러오는 라우터 생성
+
+app.get('/list',(req,res) => {
+
+	let data = {};
+
+	connection.query("select*from list_table",function(error,results)
+	{
+		if(error) {
+			console.log("에러 발생 : ", error);
+		}else {
+			//query 실행 결과로 넘겨받은 결과 값을 화면 페이지에 보내주기 위해서 data 객체에 넣어준다.
+			console.log("성공 :", results);
+			data.list = results;
+			// res.render('../view',data);
+
+			// res.json({ result : "Success!!" })
+			res.json(data);
+			// json formatter 깔끔하게 나옴
+			// 같은 주소값이면 충돌 오류 발생
+		}
+	});
+	
+});
+
+// 프론트로부터 넘겨받은 데이터를 DB에 저장하는 라우터
+app.post('/add', (res,req) =>{
+	
+	console.log("add 요청 들어옴!");
+
+	let name = req.body.name;
+	let phone = req.body.phone;
+
+	connection.query("INSERT INTO list_table (name, phone) VALUES ('"+name+"','"+phone+"')", (error, results) => {
+		if (error) {
+			console.log("에러 발생 : ", error);
+		}else {
+			console.log("저장 결과 :", results);
+			res.json({ results : 'success'});
+		}
+	})
 
 
+})
+
+// 수정처리 라우터 (/edit)
+app.put('/edit', (res,req) =>{
+
+	console.log("edit 요청 들어옴");
+
+	let id = req.body.id;
+	let name = req.body.name;
+	let phone = req.body.phone;
+
+	console.log(
+		id,name,phone
+	);
+
+	connection.query("UPDATE list_table SET name='"+name+"', phone='"+phone+"' WHERE id = "+id, (error,results) => {
+		if(error){
+			console.log(error);
+		}else {
+			console.log(results);
+			res.json({results : 'success'});
+		}
+	})
+})
 
 
+// DB 데이터를 삭제해주는 라우터
+
+app.delete('/delete/:id', (req,res) => {
+	console.log("delete 요청이 들어왔음!");
+
+	let id = req.params.id;
+
+	connection.query("DELETE FROM list_table WHERE id="+id, (error,results) => {
+		if(error){
+			console.log(error);
+		} else {
+			console.log(results);
+			res.json({results : 'success'});
+		}
+	})
+})
